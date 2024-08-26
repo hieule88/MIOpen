@@ -33,7 +33,7 @@
 #include <miopen/datatype.hpp>
 #include <miopen/kldivloss.hpp>
 #include <miopen/target_properties.hpp>
-#include <miopen/tensor_view.hpp>
+#include <miopen/tensor_view_utils.hpp>
 
 #define LOCAL_SIZE_UNREDUCED_BWD 1024
 
@@ -90,11 +90,11 @@ ConvSolution KLDivLossUnreducedBackward5d::GetSolution(
             decltype(auto) kernel = handle_.Run(kernels.front());
             decltype(auto) params = raw_params.CastTo<miopen::kldivloss::BwdInvokeParams>();
 
-            auto input_tv       = get_inner_expanded_tv_5d(deref(params.inputDesc));
-            auto target_tv      = get_inner_expanded_tv_5d(deref(params.targetDesc));
-            auto output_grad_tv = get_inner_expanded_tv_5d(deref(params.outputGradDesc));
-            auto input_grad_tv  = get_inner_expanded_tv_5d(deref(params.inputGradDesc));
-            auto target_grad_tv = get_inner_expanded_tv_5d(deref(params.targetGradDesc));
+            auto input_tv       = get_inner_expanded_tv<5>(deref(params.inputDesc));
+            auto target_tv      = get_inner_expanded_tv<5>(deref(params.targetDesc));
+            auto output_grad_tv = get_inner_expanded_tv<5>(deref(params.outputGradDesc));
+            auto input_grad_tv  = get_inner_expanded_tv<5>(deref(params.inputGradDesc));
+            auto target_grad_tv = get_inner_expanded_tv<5>(deref(params.targetGradDesc));
 
             kernel(params.input,
                    params.target,

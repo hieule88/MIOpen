@@ -62,17 +62,16 @@ __device__ void kldivLossUnreducedBackward5d(const TI* __restrict__ input,
 {
     uint64_t gid = threadIdx.x + blockIdx.x * blockDim.x;
 
-    size_t n[5];
-    GET_NCDHW(n[0], n[1], n[2], n[3], n[4], gid, input_grad_tv);
+    auto tensor_layout = tensor_layout_t<5>(input_grad_tv, gid);
 
-    if(n[0] >= input_grad_tv.size[0])
+    if(tensor_layout.layout[0] >= input_grad_tv.size[0])
         return;
 
-    size_t Iidx  = TV5D_IDX(input_tv, n[0], n[1], n[2], n[3], n[4]);
-    size_t Tidx  = TV5D_IDX(target_tv, n[0], n[1], n[2], n[3], n[4]);
-    size_t dOidx = TV5D_IDX(output_grad_tv, n[0], n[1], n[2], n[3], n[4]);
-    size_t dIidx = TV5D_IDX(input_grad_tv, n[0], n[1], n[2], n[3], n[4]);
-    size_t dTidx = TV5D_IDX(target_grad_tv, n[0], n[1], n[2], n[3], n[4]);
+    size_t Iidx  = input_tv.get_tensor_view_idx(tensor_layout);
+    size_t Tidx  = target_tv.get_tensor_view_idx(tensor_layout);
+    size_t dOidx = output_grad_tv.get_tensor_view_idx(tensor_layout);
+    size_t dIidx = input_grad_tv.get_tensor_view_idx(tensor_layout);
+    size_t dTidx = target_grad_tv.get_tensor_view_idx(tensor_layout);
 
     FLOAT_ACCUM input_value       = CVT_FLOAT2ACCUM(input[Iidx]);
     FLOAT_ACCUM target_value      = CVT_FLOAT2ACCUM(target[Tidx]);
@@ -156,17 +155,16 @@ __device__ void kldivLossReducedBackward5d(const TI* __restrict__ input,
 {
     uint64_t gid = threadIdx.x + blockIdx.x * blockDim.x;
 
-    size_t n[5];
-    GET_NCDHW(n[0], n[1], n[2], n[3], n[4], gid, input_grad_tv);
+    auto tensor_layout = tensor_layout_t<5>(input_grad_tv, gid);
 
-    if(n[0] >= input_grad_tv.size[0])
+    if(tensor_layout.layout[0] >= input_grad_tv.size[0])
         return;
 
-    size_t Iidx  = TV5D_IDX(input_tv, n[0], n[1], n[2], n[3], n[4]);
-    size_t Tidx  = TV5D_IDX(target_tv, n[0], n[1], n[2], n[3], n[4]);
-    size_t dOidx = TV1D_IDX(output_grad_tv, 0);
-    size_t dIidx = TV5D_IDX(input_grad_tv, n[0], n[1], n[2], n[3], n[4]);
-    size_t dTidx = TV5D_IDX(target_grad_tv, n[0], n[1], n[2], n[3], n[4]);
+    size_t Iidx  = input_tv.get_tensor_view_idx(tensor_layout);
+    size_t Tidx  = target_tv.get_tensor_view_idx(tensor_layout);
+    size_t dOidx = output_grad_tv.get_tensor_view_idx({0});
+    size_t dIidx = input_grad_tv.get_tensor_view_idx(tensor_layout);
+    size_t dTidx = target_grad_tv.get_tensor_view_idx(tensor_layout);
 
     FLOAT_ACCUM input_value       = CVT_FLOAT2ACCUM(input[Iidx]);
     FLOAT_ACCUM target_value      = CVT_FLOAT2ACCUM(target[Tidx]);

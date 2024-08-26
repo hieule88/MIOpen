@@ -27,7 +27,7 @@
 #define GUARD_CPU_KLDIVLOSS_HPP
 
 #include "tensor_holder.hpp"
-#include <miopen/tensor_view.hpp>
+#include <miopen/tensor_view_utils.hpp>
 
 template <class T>
 void cpu_kldivloss_unreduced_backward_5d(tensor<T> input,
@@ -39,21 +39,21 @@ void cpu_kldivloss_unreduced_backward_5d(tensor<T> input,
                                          bool input_grad_out,
                                          bool target_grad_out)
 {
-    auto I_tv  = get_inner_expanded_tv_5d(input.desc);
-    auto T_tv  = get_inner_expanded_tv_5d(target.desc);
-    auto dO_tv = get_inner_expanded_tv_5d(output_grad.desc);
-    auto dI_tv = get_inner_expanded_tv_5d(input_grad.desc);
-    auto dT_tv = get_inner_expanded_tv_5d(target_grad.desc);
+    auto I_tv  = get_inner_expanded_tv<5>(input.desc);
+    auto T_tv  = get_inner_expanded_tv<5>(target.desc);
+    auto dO_tv = get_inner_expanded_tv<5>(output_grad.desc);
+    auto dI_tv = get_inner_expanded_tv<5>(input_grad.desc);
+    auto dT_tv = get_inner_expanded_tv<5>(target_grad.desc);
 
     for(size_t i = 0; i < input.desc.GetElementSize(); ++i)
     {
-        uint64_t n[5];
-        GET_NCDHW(n[0], n[1], n[2], n[3], n[4], i, dI_tv);
-        size_t Iidx  = TV5D_IDX(I_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t Tidx  = TV5D_IDX(T_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dOidx = TV5D_IDX(dO_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dIidx = TV5D_IDX(dI_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dTidx = TV5D_IDX(dT_tv, n[0], n[1], n[2], n[3], n[4]);
+        auto tensor_layout = tensor_layout_t<5>(dI_tv, i);
+
+        size_t Iidx  = I_tv.get_tensor_view_idx(tensor_layout);
+        size_t Tidx  = T_tv.get_tensor_view_idx(tensor_layout);
+        size_t dOidx = dO_tv.get_tensor_view_idx(tensor_layout);
+        size_t dIidx = dI_tv.get_tensor_view_idx(tensor_layout);
+        size_t dTidx = dT_tv.get_tensor_view_idx(tensor_layout);
 
         T input_value       = input[Iidx];
         T target_value      = target[Tidx];
@@ -106,21 +106,20 @@ void cpu_kldivloss_reduced_backward_5d(tensor<T> input,
                                        bool input_grad_out,
                                        bool target_grad_out)
 {
-    auto I_tv  = get_inner_expanded_tv_5d(input.desc);
-    auto T_tv  = get_inner_expanded_tv_5d(target.desc);
-    auto dO_tv = get_inner_expanded_tv_1d(output_grad.desc);
-    auto dI_tv = get_inner_expanded_tv_5d(input_grad.desc);
-    auto dT_tv = get_inner_expanded_tv_5d(target_grad.desc);
+    auto I_tv  = get_inner_expanded_tv<5>(input.desc);
+    auto T_tv  = get_inner_expanded_tv<5>(target.desc);
+    auto dO_tv = get_inner_expanded_tv<1>(output_grad.desc);
+    auto dI_tv = get_inner_expanded_tv<5>(input_grad.desc);
+    auto dT_tv = get_inner_expanded_tv<5>(target_grad.desc);
 
     for(size_t i = 0; i < input.desc.GetElementSize(); ++i)
     {
-        uint64_t n[5];
-        GET_NCDHW(n[0], n[1], n[2], n[3], n[4], i, dI_tv);
-        size_t Iidx  = TV5D_IDX(I_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t Tidx  = TV5D_IDX(T_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dOidx = TV1D_IDX(dO_tv, 0);
-        size_t dIidx = TV5D_IDX(dI_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dTidx = TV5D_IDX(dT_tv, n[0], n[1], n[2], n[3], n[4]);
+        auto tensor_layout = tensor_layout_t<5>(dI_tv, i);
+        size_t Iidx        = I_tv.get_tensor_view_idx(tensor_layout);
+        size_t Tidx        = T_tv.get_tensor_view_idx(tensor_layout);
+        size_t dOidx       = dO_tv.get_tensor_view_idx({0});
+        size_t dIidx       = dI_tv.get_tensor_view_idx(tensor_layout);
+        size_t dTidx       = dT_tv.get_tensor_view_idx(tensor_layout);
 
         T input_value       = input[Iidx];
         T target_value      = target[Tidx];

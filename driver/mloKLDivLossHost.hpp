@@ -27,7 +27,7 @@
 #define MLO_KLDIVLOSSHOST_H_
 
 #include <miopen/tensor.hpp>
-#include <miopen/tensor_view.hpp>
+#include <miopen/tensor_view_utils.hpp>
 
 template <typename Tgpu, typename Tcheck>
 int32_t mloKLDivLossUnreducedBackwardRunHost5d(const miopenTensorDescriptor_t inputDesc,
@@ -44,23 +44,22 @@ int32_t mloKLDivLossUnreducedBackwardRunHost5d(const miopenTensorDescriptor_t in
                                                bool input_grad_out,
                                                bool target_grad_out)
 {
-    auto I_tv  = get_inner_expanded_tv_5d(miopen::deref(inputDesc));
-    auto T_tv  = get_inner_expanded_tv_5d(miopen::deref(targetDesc));
-    auto dO_tv = get_inner_expanded_tv_5d(miopen::deref(outputGradDesc));
-    auto dI_tv = get_inner_expanded_tv_5d(miopen::deref(inputGradDesc));
-    auto dT_tv = get_inner_expanded_tv_5d(miopen::deref(targetGradDesc));
+    auto I_tv  = get_inner_expanded_tv<5>(miopen::deref(inputDesc));
+    auto T_tv  = get_inner_expanded_tv<5>(miopen::deref(targetDesc));
+    auto dO_tv = get_inner_expanded_tv<5>(miopen::deref(outputGradDesc));
+    auto dI_tv = get_inner_expanded_tv<5>(miopen::deref(inputGradDesc));
+    auto dT_tv = get_inner_expanded_tv<5>(miopen::deref(targetGradDesc));
 
     auto numel = miopen::deref(inputDesc).GetElementSize();
 
     for(size_t i = 0; i < numel; ++i)
     {
-        uint64_t n[5];
-        GET_NCDHW(n[0], n[1], n[2], n[3], n[4], i, dI_tv);
-        size_t Iidx  = TV5D_IDX(I_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t Tidx  = TV5D_IDX(T_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dOidx = TV5D_IDX(dO_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dIidx = TV5D_IDX(dI_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dTidx = TV5D_IDX(dT_tv, n[0], n[1], n[2], n[3], n[4]);
+        auto tensor_layout = tensor_layout_t<5>(dI_tv, i);
+        size_t Iidx        = I_tv.get_tensor_view_idx(tensor_layout);
+        size_t Tidx        = T_tv.get_tensor_view_idx(tensor_layout);
+        size_t dOidx       = dO_tv.get_tensor_view_idx(tensor_layout);
+        size_t dIidx       = dI_tv.get_tensor_view_idx(tensor_layout);
+        size_t dTidx       = dT_tv.get_tensor_view_idx(tensor_layout);
 
         Tgpu input_value       = input[Iidx];
         Tgpu target_value      = target[Tidx];
@@ -126,23 +125,22 @@ int32_t mloKLDivLossReducedBackwardRunHost5d(const miopenTensorDescriptor_t inpu
                                              bool input_grad_out,
                                              bool target_grad_out)
 {
-    auto I_tv  = get_inner_expanded_tv_5d(miopen::deref(inputDesc));
-    auto T_tv  = get_inner_expanded_tv_5d(miopen::deref(targetDesc));
-    auto dO_tv = get_inner_expanded_tv_1d(miopen::deref(outputGradDesc));
-    auto dI_tv = get_inner_expanded_tv_5d(miopen::deref(inputGradDesc));
-    auto dT_tv = get_inner_expanded_tv_5d(miopen::deref(targetGradDesc));
+    auto I_tv  = get_inner_expanded_tv<5>(miopen::deref(inputDesc));
+    auto T_tv  = get_inner_expanded_tv<5>(miopen::deref(targetDesc));
+    auto dO_tv = get_inner_expanded_tv<1>(miopen::deref(outputGradDesc));
+    auto dI_tv = get_inner_expanded_tv<5>(miopen::deref(inputGradDesc));
+    auto dT_tv = get_inner_expanded_tv<5>(miopen::deref(targetGradDesc));
 
     auto numel = miopen::deref(inputDesc).GetElementSize();
 
     for(size_t i = 0; i < numel; ++i)
     {
-        uint64_t n[5];
-        GET_NCDHW(n[0], n[1], n[2], n[3], n[4], i, dI_tv);
-        size_t Iidx  = TV5D_IDX(I_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t Tidx  = TV5D_IDX(T_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dOidx = TV1D_IDX(dO_tv, 0);
-        size_t dIidx = TV5D_IDX(dI_tv, n[0], n[1], n[2], n[3], n[4]);
-        size_t dTidx = TV5D_IDX(dT_tv, n[0], n[1], n[2], n[3], n[4]);
+        auto tensor_layout = tensor_layout_t<5>(dI_tv, i);
+        size_t Iidx        = I_tv.get_tensor_view_idx(tensor_layout);
+        size_t Tidx        = T_tv.get_tensor_view_idx(tensor_layout);
+        size_t dOidx       = dO_tv.get_tensor_view_idx({0});
+        size_t dIidx       = dI_tv.get_tensor_view_idx(tensor_layout);
+        size_t dTidx       = dT_tv.get_tensor_view_idx(tensor_layout);
 
         Tgpu input_value       = input[Iidx];
         Tgpu target_value      = target[Tidx];
