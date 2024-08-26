@@ -62,14 +62,14 @@ struct ProblemDescription : ProblemDescriptionBase
 
     bool IsValidLength() const
     {
-        for(int32_t i = 0; i < targetDesc.GetSize(); ++i)
+        for(int32_t i = 0; i < targetDesc.GetNumDims(); ++i)
         {
             if(targetDesc.GetLengths()[i] != inputDesc.GetLengths()[i])
             {
                 MIOPEN_THROW(miopenStatusBadParm, "KLDivLoss: Tensor sizes do not match.");
             }
         }
-        if(inputDesc.GetSize() > 5)
+        if(inputDesc.GetNumDims() > 5)
         {
             MIOPEN_THROW(miopenStatusBadParm, "KLDivLoss: Input tensor size > 5 is not supported.");
         }
@@ -82,7 +82,7 @@ struct ProblemDescription : ProblemDescriptionBase
             auto strides = td.GetStrides();
             auto lengths = td.GetLengths();
             std::vector<std::pair<size_t, size_t>> p;
-            p.reserve(td.GetSize());
+            p.reserve(td.GetNumDims());
             std::transform(strides.begin(),
                            strides.end(),
                            lengths.begin(),
@@ -144,7 +144,7 @@ struct ReducedProblemDescription : ProblemDescription
 
     bool IsValidLength() const
     {
-        if(outputDesc.GetSize() != 1 || outputDesc.GetLengths()[0] != 1)
+        if(outputDesc.GetNumDims() != 1 || outputDesc.GetLengths()[0] != 1)
             MIOPEN_THROW(miopenStatusBadParm, "KLDivLoss: Output Tensor size must be (1).");
         if(!ProblemDescription::IsValidLength())
             return false;

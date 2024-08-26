@@ -54,11 +54,11 @@ __device__ void kldivLossUnreducedBackward5d(const TI* __restrict__ input,
                                              TO* __restrict__ input_grad,
                                              TO* __restrict__ target_grad,
                                              bool log_target,
-                                             tensor_view_5d_t input_tv,
-                                             tensor_view_5d_t target_tv,
-                                             tensor_view_5d_t output_grad_tv,
-                                             tensor_view_5d_t input_grad_tv,
-                                             tensor_view_5d_t target_grad_tv)
+                                             tensor_view_t<5> input_tv,
+                                             tensor_view_t<5> target_tv,
+                                             tensor_view_t<5> output_grad_tv,
+                                             tensor_view_t<5> input_grad_tv,
+                                             tensor_view_t<5> target_grad_tv)
 {
     uint64_t gid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -121,11 +121,11 @@ extern "C" __global__ void KLDivLossUnreducedBackward5d(const INPUT_TYPE* __rest
                                                         OUTPUT_TYPE* __restrict__ input_grad,
                                                         OUTPUT_TYPE* __restrict__ target_grad,
                                                         bool log_target,
-                                                        tensor_view_5d_t input_tv,
-                                                        tensor_view_5d_t target_tv,
-                                                        tensor_view_5d_t output_grad_tv,
-                                                        tensor_view_5d_t input_grad_tv,
-                                                        tensor_view_5d_t target_grad_tv)
+                                                        tensor_view_t<5> input_tv,
+                                                        tensor_view_t<5> target_tv,
+                                                        tensor_view_t<5> output_grad_tv,
+                                                        tensor_view_t<5> input_grad_tv,
+                                                        tensor_view_t<5> target_grad_tv)
 {
     kldivLossUnreducedBackward5d<INPUT_TYPE, OUTPUT_TYPE>(input,
                                                           target,
@@ -148,11 +148,11 @@ __device__ void kldivLossReducedBackward5d(const TI* __restrict__ input,
                                            TO* __restrict__ target_grad,
                                            float divisor,
                                            bool log_target,
-                                           tensor_view_5d_t input_tv,
-                                           tensor_view_5d_t target_tv,
-                                           tensor_view_1d_t output_grad_tv,
-                                           tensor_view_5d_t input_grad_tv,
-                                           tensor_view_5d_t target_grad_tv)
+                                           tensor_view_t<5> input_tv,
+                                           tensor_view_t<5> target_tv,
+                                           tensor_view_t<1> output_grad_tv,
+                                           tensor_view_t<5> input_grad_tv,
+                                           tensor_view_t<5> target_grad_tv)
 {
     uint64_t gid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -222,11 +222,11 @@ extern "C" __global__ void KLDivLossReducedBackward5d(const INPUT_TYPE* __restri
                                                       OUTPUT_TYPE* __restrict__ target_grad,
                                                       float divisor,
                                                       bool log_target,
-                                                      tensor_view_5d_t input_tv,
-                                                      tensor_view_5d_t target_tv,
-                                                      tensor_view_1d_t output_grad_tv,
-                                                      tensor_view_5d_t input_grad_tv,
-                                                      tensor_view_5d_t target_grad_tv)
+                                                      tensor_view_t<5> input_tv,
+                                                      tensor_view_t<5> target_tv,
+                                                      tensor_view_t<1> output_grad_tv,
+                                                      tensor_view_t<5> input_grad_tv,
+                                                      tensor_view_t<5> target_grad_tv)
 {
     kldivLossReducedBackward5d<INPUT_TYPE, OUTPUT_TYPE>(input,
                                                         target,
