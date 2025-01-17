@@ -28,7 +28,7 @@
 
 #include <miopen/conv_solution.hpp>
 #include <miopen/execution_context.hpp>
-#include <miopen/fractionalmaxpool/problem_description.hpp>
+#include <miopen/typecast/problem_description.hpp>
 #include <miopen/solver.hpp>
 #include <miopen/kernel_build_params.hpp>
 #include <miopen/kernel_info.hpp>
@@ -38,7 +38,7 @@ namespace miopen {
 
 namespace solver {
 
-namespace fractionalmaxpool {
+namespace typecast {
 
 const auto make_hip_kernel = [](std::vector<size_t> localsize,
                                 std::vector<size_t> gridsize,
@@ -55,47 +55,20 @@ const auto make_hip_kernel = [](std::vector<size_t> localsize,
         build_params.GenerateFor(kbp::HIP{}), localsize, gridsize, kernel_file, kernel_name};
 };
 
-using FractionalMaxPoolForwardSolver =
-    NonTunableSolverBase<ExecutionContext, miopen::fractionalmaxpool::FwdProblemDescription>;
+using TypeCastSolver = NonTunableSolverBase<ExecutionContext, miopen::typecast::ProblemDescription>;
 
-using FractionalMaxPoolBackwardSolver =
-    NonTunableSolverBase<ExecutionContext, miopen::fractionalmaxpool::BwdProblemDescription>;
-
-// FORWARD
-struct FractionalMaxPoolForward final : FractionalMaxPoolForwardSolver
+struct TypeCast final : TypeCastSolver
 {
-    const std::string& SolverDbId() const override
-    {
-        return GetSolverDbId<FractionalMaxPoolForward>();
-    }
+    const std::string& SolverDbId() const override { return GetSolverDbId<TypeCast>(); }
 
-    bool
-    IsApplicable(const ExecutionContext& context,
-                 const miopen::fractionalmaxpool::FwdProblemDescription& problem) const override;
+    bool IsApplicable(const ExecutionContext& context,
+                      const miopen::typecast::ProblemDescription& problem) const override;
 
-    ConvSolution
-    GetSolution(const ExecutionContext& context,
-                const miopen::fractionalmaxpool::FwdProblemDescription& problem) const override;
+    ConvSolution GetSolution(const ExecutionContext& context,
+                             const miopen::typecast::ProblemDescription& problem) const override;
 };
 
-// BACKWARD
-struct FractionalMaxPoolBackward final : FractionalMaxPoolBackwardSolver
-{
-    const std::string& SolverDbId() const override
-    {
-        return GetSolverDbId<FractionalMaxPoolBackward>();
-    }
-
-    bool
-    IsApplicable(const ExecutionContext& context,
-                 const miopen::fractionalmaxpool::BwdProblemDescription& problem) const override;
-
-    ConvSolution
-    GetSolution(const ExecutionContext& context,
-                const miopen::fractionalmaxpool::BwdProblemDescription& problem) const override;
-};
-
-} // namespace fractionalmaxpool
+} // namespace typecast
 
 } // namespace solver
 

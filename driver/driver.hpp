@@ -177,7 +177,7 @@ inline void PadBufferSize(size_t& sz, int datatype_sz)
            "adamw[fp16], ampadamw, transformersadamw[fp16], transformersampadamw, "
            "getitem[bfp16|fp16], reducecalculation[bfp16|fp16], rope[bfp16|fp16], "
            "prelu[bfp16|fp16], kthvalue[bfp16|fp16], glu[bfp16|fp16], softmarginloss[bfp16|fp16], "
-           "multimarginloss[bfp16|fp16], fractionalmaxpool[bfp16|fp16]\n");
+           "multimarginloss[bfp16|fp16], typecast[bfp16|fp16]\n");
     exit(0); // NOLINT (concurrency-mt-unsafe)
 }
 
@@ -214,8 +214,7 @@ inline std::string ParseBaseArg(int argc, char* argv[])
        arg != "kthvaluebfp16" && arg != "glu" && arg != "glufp16" && arg != "glubfp16" &&
        arg != "softmarginloss" && arg != "softmarginlossfp16" && arg != "softmarginlossbfp16" &&
        arg != "multimarginloss" && arg != "multimarginlossfp16" && arg != "multimarginlossbfp16" &&
-       arg != "fractionalmaxpool" && arg != "fractionalmaxpoolfp16" &&
-       arg != "fractionalmaxpoolbfp16" && arg != "--version")
+       arg != "typecast" && arg != "typecastfp16" && arg != "typecastbfp16" && arg != "--version")
     {
         printf("FAILED: Invalid Base Input Argument\n");
         Usage();

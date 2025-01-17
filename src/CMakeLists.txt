@@ -122,8 +122,6 @@ set( MIOpen_Source
     expanduser.cpp
     find_controls.cpp
     find_db.cpp
-    fractionalmaxpool_api.cpp
-    fractionalmaxpool/problem_description.cpp
     fused_api.cpp
     fusion.cpp
     fusion/problem_description.cpp
@@ -302,8 +300,6 @@ set( MIOpen_Source
     solver/conv_ck_igemm_fwd_bias_res_add_activ_fused.cpp
     solver/conv_ocl_dir2Dfwd_fused.cpp
     solver/conv_winoRxS_fused.cpp
-    solver/fractionalmaxpool/backward_fractionalmaxpool.cpp
-    solver/fractionalmaxpool/forward_fractionalmaxpool.cpp
     solver/glu/backward_glu.cpp
     solver/glu/forward_glu.cpp
     solver/groupnorm/forward_groupnorm.cpp
@@ -338,6 +334,7 @@ set( MIOpen_Source
     solver/softmarginloss/forward_softmarginloss.cpp
     solver/softmax/attn_softmax.cpp
     solver/softmax/softmax.cpp
+    solver/typecast/typecast.cpp
     subbuffers.cpp
     t5layernorm_api.cpp
     target_properties.cpp
@@ -345,10 +342,12 @@ set( MIOpen_Source
     tensor.cpp
     tensor_api.cpp
     transformers_adam_w_api.cpp
+    typecast_api.cpp
+    typecast/problem_description.cpp
     seq_tensor.cpp
-)
+    )
 
-if(MIOPEN_ENABLE_AI_KERNEL_TUNING OR MIOPEN_ENABLE_AI_IMMED_MODE_FALLBACK)
+    if(MIOPEN_ENABLE_AI_KERNEL_TUNING OR MIOPEN_ENABLE_AI_IMMED_MODE_FALLBACK)
     list(APPEND MIOpen_Source conv/heuristics/ai_heuristics.cpp)
     list(APPEND MIOpen_Source anyramdb.cpp)
 endif()
@@ -532,7 +531,6 @@ if( MIOPEN_BACKEND MATCHES "OpenCL" OR MIOPEN_BACKEND STREQUAL "HIPOC" OR MIOPEN
         kernels/MIOpenConvDirUni.cl
         kernels/MIOpenConvDirBatchNormActiv.cl
         kernels/MIOpenConvDirGenFwd.cl
-        kernels/MIOpenFractionalMaxPool.cpp
         kernels/MIOpenGLU.cpp
         kernels/MIOpenGroupNorm.cpp
         kernels/MIOpenGetitem.cpp
@@ -558,6 +556,7 @@ if( MIOPEN_BACKEND MATCHES "OpenCL" OR MIOPEN_BACKEND STREQUAL "HIPOC" OR MIOPEN
         kernels/MIOpenSoftMarginLoss.cpp
         kernels/MIOpenSoftmax.cl
         kernels/MIOpenSoftmaxAttn.cpp
+        kernels/MIOpenTypeCast.cpp
         kernels/MIOpenUtilKernels3.cl
         kernels/MIOpenUtilKernels4.cl
         kernels/MIOpenUtilKernels5.cl
@@ -672,7 +671,6 @@ if( MIOPEN_BACKEND MATCHES "OpenCL" OR MIOPEN_BACKEND STREQUAL "HIPOC" OR MIOPEN
         addlayernorm.cpp
         cat.cpp
         exec_utils.cpp
-        fractionalmaxpool.cpp
         groupnorm.cpp
         getitem.cpp
         glu.cpp
@@ -708,10 +706,11 @@ if( MIOPEN_BACKEND MATCHES "OpenCL" OR MIOPEN_BACKEND STREQUAL "HIPOC" OR MIOPEN
         rope.cpp
         softmarginloss.cpp
         transformers_adam_w.cpp
+        typecast.cpp
         ${PROJECT_BINARY_DIR}/db_path.cpp
         )
-
-    list(INSERT MIOpen_Source 0
+        
+        list(INSERT MIOpen_Source 0
         ${PROJECT_BINARY_DIR}/kernel.cpp
         ${PROJECT_BINARY_DIR}/kernel_includes.cpp
         )

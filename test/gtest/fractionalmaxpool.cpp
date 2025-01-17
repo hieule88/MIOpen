@@ -23,7 +23,7 @@
  * SOFTWARE.
  *
  *******************************************************************************/
-#include "fractionalmaxpool.hpp"
+#include "typecast.hpp"
 using float16 = half_float::half;
 
 // FORWARD TEST

@@ -23,59 +23,49 @@
  * SOFTWARE.
  *
  *******************************************************************************/
+#pragma once
 
-#include <miopen/fractionalmaxpool/problem_description.hpp>
-#include <miopen/names.hpp>
-
-#include <sstream>
+#include <miopen/miopen.h>
+#include <miopen/problem_description_base.hpp>
+#include <miopen/activ.hpp>
+#include <miopen/tensor.hpp>
 
 namespace miopen {
 
-namespace fractionalmaxpool {
+struct NetworkConfig;
 
-inline std::ostream& operator<<(std::ostream& os, const std::vector<uint64_t>& v)
+namespace typecast {
+
+struct ProblemDescription : ProblemDescriptionBase
 {
-    os << '{';
-    for(int i = 0; i < v.size(); ++i)
+    ProblemDescription(const TensorDescriptor& inputDesc_,
+                       const TensorDescriptor& outputDesc_,
+                       const uint64_t bits_to_truncate_)
+        : inputDesc(inputDesc_), outputDesc(outputDesc_), bits_to_truncate(bits_to_truncate_)
     {
-        if(i != 0)
-            os << ',';
-        os << v[i];
+        IsSameLength();
     }
-    os << '}';
-    return os;
-}
 
-NetworkConfig FwdProblemDescription::MakeNetworkConfig() const
-{
-    auto dtype         = outputDesc.GetType();
-    auto indices_dtype = indicesDesc.GetType();
-    std::ostringstream ss;
+    const TensorDescriptor& GetInputDesc() const { return inputDesc; }
+    const TensorDescriptor& GetOutputDesc() const { return outputDesc; }
 
-    ss << "fractionalmaxpool_fwd";
-    ss << "-dtype" << dtype;
-    ss << "-indices_dtype" << indices_dtype;
-    ss << "-Is" << inputDesc.GetLengths();
-    ss << "-Os" << outputDesc.GetLengths();
+    bool IsSameLength() const
+    {
+        if(inputDesc.GetType() != outputDesc.GetType())
+            MIOPEN_THROW(miopenStatusBadParm, "TypeCast: Data types do not match.");
+        return true;
+    }
 
-    return NetworkConfig{ss.str()};
-}
+    bool IsAllContiguous() const { return inputDesc.IsContiguous() && outputDesc.IsContiguous(); }
 
-NetworkConfig BwdProblemDescription::MakeNetworkConfig() const
-{
-    auto dtype         = outputGradDesc.GetType();
-    auto indices_dtype = indicesDesc.GetType();
-    std::ostringstream ss;
+    NetworkConfig MakeNetworkConfig() const override;
 
-    ss << "fractionalmaxpool_bwd";
-    ss << "-dtype" << dtype;
-    ss << "-indices_dtype" << indices_dtype;
-    ss << "-dIs" << inputGradDesc.GetLengths();
-    ss << "-dOs" << outputGradDesc.GetLengths();
+private:
+    TensorDescriptor inputDesc;
+    TensorDescriptor outputDesc;
+    uint64_t bits_to_truncate;
+};
 
-    return NetworkConfig{ss.str()};
-}
-
-} // namespace fractionalmaxpool
+} // namespace typecast
 
 } // namespace miopen

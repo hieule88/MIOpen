@@ -31,48 +31,25 @@
 
 namespace miopen {
 
-namespace fractionalmaxpool {
+namespace typecast {
 
-struct FwdInvokeParams : public miopen::InvokeParams
+struct InvokeParams : public miopen::InvokeParams
 {
 
-    FwdInvokeParams() = default;
+    InvokeParams() = default;
 
-    const TensorDescriptor* inputDesc        = nullptr;
-    const TensorDescriptor* outputDesc       = nullptr;
-    const TensorDescriptor* indicesDesc      = nullptr;
-    const TensorDescriptor* randomSampleDesc = nullptr;
+    const TensorDescriptor* inputDesc  = nullptr;
+    const TensorDescriptor* outputDesc = nullptr;
 
-    ConstData_t input         = nullptr;
-    Data_t output             = nullptr;
-    Data_t indices            = nullptr;
-    ConstData_t random_sample = nullptr;
+    ConstData_t input = nullptr;
+    Data_t output     = nullptr;
 
-    int64_t KD = 0;
-    int64_t KH = 0;
-    int64_t KW = 0;
+    uint64_t bits_to_truncate = 0;
 
     std::uint64_t GetWorkspaceSize() const { return 0; }
     Data_t GetWorkspace() const { return nullptr; }
 };
 
-struct BwdInvokeParams : public miopen::InvokeParams
-{
-
-    BwdInvokeParams() = default;
-
-    const TensorDescriptor* indicesDesc    = nullptr;
-    const TensorDescriptor* outputGradDesc = nullptr;
-    const TensorDescriptor* inputGradDesc  = nullptr;
-
-    ConstData_t indices     = nullptr;
-    ConstData_t output_grad = nullptr;
-    Data_t input_grad       = nullptr;
-
-    std::uint64_t GetWorkspaceSize() const { return 0; }
-    Data_t GetWorkspace() const { return nullptr; }
-};
-
-} // namespace fractionalmaxpool
+} // namespace typecast
 
 } // namespace miopen

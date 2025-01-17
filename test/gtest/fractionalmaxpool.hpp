@@ -23,12 +23,12 @@
  * SOFTWARE.
  *
  *******************************************************************************/
-#include "cpu_fractionalmaxpool.hpp"
+#include "cpu_typecast.hpp"
 #include "get_handle.hpp"
 #include "tensor_holder.hpp"
 #include "verify.hpp"
 #include <gtest/gtest.h>
-#include <miopen/fractionalmaxpool.hpp>
+#include <miopen/typecast.hpp>
 #include <miopen/miopen.h>
 
 template <class T>
@@ -78,11 +78,11 @@ struct FractionalMaxPoolTestFwd : public ::testing::TestWithParam<FractionalMaxP
 protected:
     void SetUp() override
     {
-        auto&& handle            = get_handle();
-        fractionalmaxpool_config = GetParam();
-        in_dim                   = fractionalmaxpool_config.input_dim;
-        ksize                    = fractionalmaxpool_config.kernel_size;
-        out_dim                  = fractionalmaxpool_config.output_dim;
+        auto&& handle   = get_handle();
+        typecast_config = GetParam();
+        in_dim          = typecast_config.input_dim;
+        ksize           = typecast_config.kernel_size;
+        out_dim         = typecast_config.output_dim;
 
         auto gen_input_value = [](auto...) {
             return prng::gen_A_to_B<T>(static_cast<T>(-10.0f), static_cast<T>(10.0f));
@@ -120,28 +120,27 @@ protected:
 
         if(ksize.size() == 2)
         {
-            cpu_fractionalmaxpool2d_forward<T, int64_t>(
+            cpu_typecast2d_forward<T, int64_t>(
                 input, ref_output, ref_indices, random_sample, ksize[0], ksize[1]);
         }
         else if(ksize.size() == 3)
         {
-            cpu_fractionalmaxpool3d_forward<T, int64_t>(
+            cpu_typecast3d_forward<T, int64_t>(
                 input, ref_output, ref_indices, random_sample, ksize[0], ksize[1], ksize[2]);
         }
-        status =
-            miopen::fractionalmaxpool::FractionalMaxPoolForward(handle,
-                                                                input.desc,
-                                                                input_dev.get(),
-                                                                output.desc,
-                                                                output_dev.get(),
-                                                                indices.desc,
-                                                                indices_dev.get(),
-                                                                random_sample.desc,
-                                                                random_sample_dev.get(),
-                                                                true,
-                                                                ksize[0],
-                                                                ksize[1],
-                                                                ksize.size() == 3 ? ksize[2] : 1);
+        status = miopen::typecast::TypeCast(handle,
+                                            input.desc,
+                                            input_dev.get(),
+                                            output.desc,
+                                            output_dev.get(),
+                                            indices.desc,
+                                            indices_dev.get(),
+                                            random_sample.desc,
+                                            random_sample_dev.get(),
+                                            true,
+                                            ksize[0],
+                                            ksize[1],
+                                            ksize.size() == 3 ? ksize[2] : 1);
         ASSERT_EQ(status, miopenStatusSuccess);
         output.data  = handle.Read<T>(output_dev, output.data.size());
         indices.data = handle.Read<Ti>(indices_dev, indices.data.size());
@@ -164,7 +163,7 @@ protected:
             << "Error forward Indices beyond 10xthreshold : " << error_indices
             << " Tolerance: " << threshold * 10;
     }
-    FractionalMaxPoolTestCase fractionalmaxpool_config;
+    FractionalMaxPoolTestCase typecast_config;
 
     std::vector<size_t> in_dim;
     std::vector<int64_t> ksize;
@@ -191,11 +190,11 @@ struct FractionalMaxPoolTestBwd : public ::testing::TestWithParam<FractionalMaxP
 protected:
     void SetUp() override
     {
-        auto&& handle            = get_handle();
-        fractionalmaxpool_config = GetParam();
-        in_dim                   = fractionalmaxpool_config.input_dim;
-        ksize                    = fractionalmaxpool_config.kernel_size;
-        out_dim                  = fractionalmaxpool_config.output_dim;
+        auto&& handle   = get_handle();
+        typecast_config = GetParam();
+        in_dim          = typecast_config.input_dim;
+        ksize           = typecast_config.kernel_size;
+        out_dim         = typecast_config.output_dim;
 
         auto gen_value = [](auto...) {
             return prng::gen_A_to_B<T>(static_cast<T>(-10.0f), static_cast<T>(10.0f));
@@ -221,20 +220,20 @@ protected:
         miopenStatus_t status = miopenStatusSuccess;
         if(ksize.size() == 2)
         {
-            cpu_fractionalmaxpool2d_backward<T>(indices, output_grad, ref_input_grad);
+            cpu_typecast2d_backward<T>(indices, output_grad, ref_input_grad);
         }
         else if(ksize.size() == 3)
         {
-            cpu_fractionalmaxpool3d_backward<T>(indices, output_grad, ref_input_grad);
+            cpu_typecast3d_backward<T>(indices, output_grad, ref_input_grad);
         }
 
-        status = miopen::fractionalmaxpool::FractionalMaxPoolBackward(handle,
-                                                                      indices.desc,
-                                                                      indices_dev.get(),
-                                                                      output_grad.desc,
-                                                                      output_grad_dev.get(),
-                                                                      input_grad.desc,
-                                                                      input_grad_dev.get());
+        status = miopen::typecast::FractionalMaxPoolBackward(handle,
+                                                             indices.desc,
+                                                             indices_dev.get(),
+                                                             output_grad.desc,
+                                                             output_grad_dev.get(),
+                                                             input_grad.desc,
+                                                             input_grad_dev.get());
         ASSERT_EQ(status, miopenStatusSuccess);
         input_grad.data = handle.Read<T>(input_grad_dev, input_grad.data.size());
     }
@@ -249,7 +248,7 @@ protected:
             << "Error backward Input grad beyond 10xthreshold : " << error
             << " Tolerance: " << threshold * 10;
     }
-    FractionalMaxPoolTestCase fractionalmaxpool_config;
+    FractionalMaxPoolTestCase typecast_config;
 
     std::vector<size_t> in_dim;
     std::vector<int64_t> ksize;

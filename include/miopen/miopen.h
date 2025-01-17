@@ -72,6 +72,7 @@
  * @defgroup ReduceCalculation
  * @defgroup RotaryPositionalEmbeddings
  * @defgroup ReLU
+ * @defgroup typecast
  *
  */
 
@@ -8004,66 +8005,31 @@ MIOPEN_EXPORT miopenStatus_t miopenMultiMarginLossForward(miopenHandle_t handle,
 #endif // MIOPEN_BETA_API
 
 #ifdef MIOPEN_BETA_API
-// FractionalMaxPool APIs
-/** @addtogroup pooling
+// TypeCast APIs
+/** @addtogroup typecast
  *
  *  @{
  */
 
-/*! @brief Execute a fractionalmaxpool forward layer
+/*! @brief Execute a typecast layer
  *
  * @param handle                MIOpen handle (input)
  * @param inputDesc             Tensor descriptor for input  tensor (input)
  * @param input                 Data tensor input  (input)
  * @param outputDesc            Tensor descriptor for output tensor (input)
  * @param output                Data tensor output (output)
- * @param indicesDesc           Tensor descriptor for indices tensor (input)
- * @param indices               Data tensor indices (output)
- * @param randomSampleDesc      Tensor descriptor for random sample tensor (input)
- * @param random_sample         Data tensor random sample (input)
- * @param return_indices        Flag indicating whether to return indices (input)
- * @param KD                    Kernel depth (input)
- * @param KH                    Kernel height (input)
- * @param KW                    Kernel width (input)
+ * @param bits_to_truncate      Number of bits to truncate (input)
  * @return                      miopenStatus_t
  */
-MIOPEN_EXPORT miopenStatus_t
-miopenFractionalMaxPoolForward(miopenHandle_t handle,
-                               const miopenTensorDescriptor_t inputDesc,
-                               const void* input,
-                               const miopenTensorDescriptor_t outputDesc,
-                               void* output,
-                               const miopenTensorDescriptor_t indicesDesc,
-                               void* indices,
-                               const miopenTensorDescriptor_t randomSampleDesc,
-                               const void* random_sample,
-                               const bool return_indices,
-                               const int64_t KD,
-                               const int64_t KH,
-                               const int64_t KW);
-
-/*! @brief Execute a fractionalmaxpool backward layer
- *
- * @param handle                MIOpen handle (input)
- * @param indicesDesc           Tensor descriptor for indices tensor (input)
- * @param indices               Data tensor indices (input)
- * @param outputGradDesc        Tensor descriptor for output grad tensor (input)
- * @param output_grad           Data tensor output grad (input)
- * @param inputGradDesc         Tensor descriptor for input grad tensor (input)
- * @param input_grad            Data tensor input grad (output)
- * @return                      miopenStatus_t
- */
-MIOPEN_EXPORT miopenStatus_t
-miopenFractionalMaxPoolBackward(miopenHandle_t handle,
-                                const miopenTensorDescriptor_t indicesDesc,
-                                const void* indices,
-                                const miopenTensorDescriptor_t outputGradDesc,
-                                const void* output_grad,
-                                const miopenTensorDescriptor_t inputGradDesc,
-                                void* input_grad);
+MIOPEN_EXPORT miopenStatus_t miopenTypeCast(miopenHandle_t handle,
+                                            const miopenTensorDescriptor_t inputDesc,
+                                            const void* input,
+                                            const miopenTensorDescriptor_t outputDesc,
+                                            void* output,
+                                            const uint64_t bits_to_truncate);
 
 /** @} */
-// CLOSEOUT pooling DOXYGEN GROUP
+// CLOSEOUT typecast DOXYGEN GROUP
 #endif // MIOPEN_BETA_API
 
 #ifdef __cplusplus

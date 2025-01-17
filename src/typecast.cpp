@@ -23,18 +23,42 @@
  * SOFTWARE.
  *
  *******************************************************************************/
-#include "registry_driver_maker.hpp"
-#include "typecast_driver.hpp"
+#include <miopen/typecast.hpp>
+#include <miopen/kernel_cache.hpp>
+#include <miopen/float_equal.hpp>
+#include <miopen/tensor.hpp>
+#include <miopen/typecast/invoke_params.hpp>
+#include <miopen/typecast/solvers.hpp>
+#include <miopen/find_solution.hpp>
 
-static Driver* makeDriver(const std::string& base_arg)
+namespace miopen {
+
+namespace typecast {
+
+miopenStatus_t TypeCast(Handle& handle,
+                        const TensorDescriptor& inputDesc,
+                        ConstData_t input,
+                        const TensorDescriptor& outputDesc,
+                        Data_t output,
+                        const uint64_t bits_to_truncate)
 {
-    if(base_arg == "typecast")
-        return new FractionalMaxPoolDriver<float, float, int64_t>();
-    if(base_arg == "typecastfp16")
-        return new FractionalMaxPoolDriver<float16, float, int64_t>();
-    if(base_arg == "typecastbfp16")
-        return new FractionalMaxPoolDriver<bfloat16, float, int64_t>();
-    return nullptr;
+    const auto problem = typecast::ProblemDescription{inputDesc, outputDesc, bits_to_truncate};
+    const auto invoke_params = [&]() {
+        auto tmp             = typecast::InvokeParams{};
+        tmp.inputDesc        = &inputDesc;
+        tmp.input            = input;
+        tmp.outputDesc       = &outputDesc;
+        tmp.output           = output;
+        tmp.bits_to_truncate = bits_to_truncate;
+
+        return tmp;
+    }();
+    const auto algo    = AlgorithmName{"TypeCast"};
+    const auto solvers = solver::SolverContainer<solver::typecast::TypeCast>{};
+    solvers.ExecutePrimitive(handle, problem, algo, invoke_params);
+    return miopenStatusSuccess;
 }
 
-REGISTER_DRIVER_MAKER(makeDriver);
+} // namespace typecast
+
+} // namespace miopen

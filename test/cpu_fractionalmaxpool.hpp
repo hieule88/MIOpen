@@ -45,12 +45,12 @@ inline int64_t get_interval(
 }
 
 template <class T, class Ti>
-void cpu_fractionalmaxpool2d_forward(const tensor<T> input,
-                                     tensor<T>& output,
-                                     tensor<Ti>& indices,
-                                     const tensor<T> random_sample,
-                                     const int64_t KH,
-                                     const int64_t KW)
+void cpu_typecast2d_forward(const tensor<T> input,
+                            tensor<T>& output,
+                            tensor<Ti>& indices,
+                            const tensor<T> random_sample,
+                            const int64_t KH,
+                            const int64_t KW)
 {
     auto input_tv         = miopen::get_inner_expanded_tv<4>(input.desc);
     auto output_tv        = miopen::get_inner_expanded_tv<4>(output.desc);
@@ -124,9 +124,9 @@ void cpu_fractionalmaxpool2d_forward(const tensor<T> input,
 }
 
 template <class T, class Ti>
-void cpu_fractionalmaxpool2d_backward(const tensor<Ti> indices,
-                                      const tensor<T> output_grad,
-                                      tensor<T>& input_grad)
+void cpu_typecast2d_backward(const tensor<Ti> indices,
+                             const tensor<T> output_grad,
+                             tensor<T>& input_grad)
 {
     auto indices_tv     = miopen::get_inner_expanded_tv<4>(indices.desc);
     auto output_grad_tv = miopen::get_inner_expanded_tv<4>(output_grad.desc);
@@ -148,13 +148,13 @@ void cpu_fractionalmaxpool2d_backward(const tensor<Ti> indices,
 }
 
 template <class T, class Ti>
-void cpu_fractionalmaxpool3d_forward(const tensor<T> input,
-                                     tensor<T>& output,
-                                     tensor<Ti>& indices,
-                                     const tensor<T> random_sample,
-                                     const int64_t KD,
-                                     const int64_t KH,
-                                     const int64_t KW)
+void cpu_typecast3d_forward(const tensor<T> input,
+                            tensor<T>& output,
+                            tensor<Ti>& indices,
+                            const tensor<T> random_sample,
+                            const int64_t KD,
+                            const int64_t KH,
+                            const int64_t KW)
 {
     auto input_tv         = miopen::get_inner_expanded_tv<5>(input.desc);
     auto output_tv        = miopen::get_inner_expanded_tv<5>(output.desc);
@@ -243,9 +243,9 @@ void cpu_fractionalmaxpool3d_forward(const tensor<T> input,
 }
 
 template <class T, class Ti>
-void cpu_fractionalmaxpool3d_backward(const tensor<Ti> indices,
-                                      const tensor<T> output_grad,
-                                      tensor<T>& input_grad)
+void cpu_typecast3d_backward(const tensor<Ti> indices,
+                             const tensor<T> output_grad,
+                             tensor<T>& input_grad)
 {
     auto indices_tv     = miopen::get_inner_expanded_tv<5>(indices.desc);
     auto output_grad_tv = miopen::get_inner_expanded_tv<5>(output_grad.desc);

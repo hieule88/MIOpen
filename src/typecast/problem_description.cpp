@@ -23,18 +23,44 @@
  * SOFTWARE.
  *
  *******************************************************************************/
-#include "registry_driver_maker.hpp"
-#include "typecast_driver.hpp"
 
-static Driver* makeDriver(const std::string& base_arg)
+#include <miopen/typecast/problem_description.hpp>
+#include <miopen/names.hpp>
+
+#include <sstream>
+
+namespace miopen {
+
+namespace typecast {
+
+inline std::ostream& operator<<(std::ostream& os, const std::vector<uint64_t>& v)
 {
-    if(base_arg == "typecast")
-        return new FractionalMaxPoolDriver<float, float, int64_t>();
-    if(base_arg == "typecastfp16")
-        return new FractionalMaxPoolDriver<float16, float, int64_t>();
-    if(base_arg == "typecastbfp16")
-        return new FractionalMaxPoolDriver<bfloat16, float, int64_t>();
-    return nullptr;
+    os << '{';
+    for(int i = 0; i < v.size(); ++i)
+    {
+        if(i != 0)
+            os << ',';
+        os << v[i];
+    }
+    os << '}';
+    return os;
 }
 
-REGISTER_DRIVER_MAKER(makeDriver);
+NetworkConfig ProblemDescription::MakeNetworkConfig() const
+{
+    auto input_dtype  = inputDesc.GetType();
+    auto output_dtype = outputDesc.GetType();
+    std::ostringstream ss;
+
+    ss << "typecast_fwd";
+    ss << "-input_dtype" << input_dtype;
+    ss << "-output_dtype" << output_dtype;
+    ss << "-Is" << inputDesc.GetLengths();
+    ss << "-IsAllContiguous" << IsAllContiguous();
+
+    return NetworkConfig{ss.str()};
+}
+
+} // namespace typecast
+
+} // namespace miopen

@@ -31,32 +31,15 @@ namespace miopen {
 struct Handle;
 struct TensorDescriptor;
 
-namespace fractionalmaxpool {
+namespace typecast {
 
-MIOPEN_INTERNALS_EXPORT miopenStatus_t
-FractionalMaxPoolForward(Handle& handle,
-                         const TensorDescriptor& inputDesc,
-                         ConstData_t input,
-                         const TensorDescriptor& outputDesc,
-                         Data_t output,
-                         const TensorDescriptor& indicesDesc,
-                         Data_t indices,
-                         const TensorDescriptor& randomSampleDesc,
-                         ConstData_t random_sample,
-                         bool return_indices,
-                         int64_t KD,
-                         int64_t KH,
-                         int64_t KW);
+MIOPEN_INTERNALS_EXPORT miopenStatus_t TypeCast(Handle& handle,
+                                                const TensorDescriptor& inputDesc,
+                                                ConstData_t input,
+                                                const TensorDescriptor& outputDesc,
+                                                Data_t output,
+                                                uint64_t bits_to_truncate);
 
-MIOPEN_INTERNALS_EXPORT miopenStatus_t
-FractionalMaxPoolBackward(Handle& handle,
-                          const TensorDescriptor& indicesDesc,
-                          ConstData_t indices,
-                          const TensorDescriptor& outputGradDesc,
-                          ConstData_t output_grad,
-                          const TensorDescriptor& inputGradDesc,
-                          Data_t input_grad);
-
-} // namespace fractionalmaxpool
+} // namespace typecast
 
 } // namespace miopen
