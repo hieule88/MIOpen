@@ -23,18 +23,26 @@
  * SOFTWARE.
  *
  *******************************************************************************/
-#include "registry_driver_maker.hpp"
-#include "typecast_driver.hpp"
+#pragma once
 
-static Driver* makeDriver(const std::string& base_arg)
+#include <cmath>
+#include <miopen/tensor.hpp>
+#include <miopen/tensor_view_utils.hpp>
+#include <../test/ford.hpp>
+
+template <typename Tgpu, typename Tcheck, typename Ti>
+int32_t mloTypeCastRunHost(const miopenTensorDescriptor_t inputDesc,
+                           const Tgpu* input,
+                           const miopenTensorDescriptor_t outputDesc,
+                           Tcheck* output,
+                           const uint64_t bits_to_truncate)
 {
-    if(base_arg == "typecast")
-        return new FractionalMaxPoolDriver<float, float, int64_t>();
-    if(base_arg == "typecastfp16")
-        return new FractionalMaxPoolDriver<float16, float, int64_t>();
-    if(base_arg == "typecastbfp16")
-        return new FractionalMaxPoolDriver<bfloat16, float, int64_t>();
-    return nullptr;
-}
+    auto input_tv  = miopen::get_inner_expanded_tv<5>(miopen::deref(inputDesc));
+    auto output_tv = miopen::get_inner_expanded_tv<5>(miopen::deref(outputDesc));
 
-REGISTER_DRIVER_MAKER(makeDriver);
+    par_ford(miopen::deref(outputDesc).GetElementSize())([&](auto gid) {
+
+    });
+
+    return miopenStatusSuccess;
+}
