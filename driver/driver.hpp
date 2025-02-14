@@ -177,7 +177,13 @@ inline void PadBufferSize(size_t& sz, int datatype_sz)
            "adamw[fp16], ampadamw, transformersadamw[fp16], transformersampadamw, "
            "getitem[bfp16|fp16], reducecalculation[bfp16|fp16], rope[bfp16|fp16], "
            "prelu[bfp16|fp16], kthvalue[bfp16|fp16], glu[bfp16|fp16], softmarginloss[bfp16|fp16], "
-           "multimarginloss[bfp16|fp16], typecast[bfp16|fp16]\n");
+           "multimarginloss[bfp16|fp16], "
+           "typecast_[float32half|float32bfloat16|float32int8|float32int|float32double|"
+           "float32int64|bfloat16|int8|int|double|int64|bfloat16int8|bfloat16int|bfloat16double|"
+           "bfloat16int64|int8int|int8double|int8int64|intdouble|intint64|doubleint64|halffloat32|"
+           "bfloat16float32|int8float32|intfloat32|doublefloat32|int64float32|bfloat16half|"
+           "int8half|inthalf|doublehalf|int64half|int8bfloat16|intbfloat16|doublebfloat16|"
+           "int64bfloat16|intint8|doubleint8|int64int8|doubleint|int64int|int64double]\n");
     exit(0); // NOLINT (concurrency-mt-unsafe)
 }
 
@@ -214,7 +220,25 @@ inline std::string ParseBaseArg(int argc, char* argv[])
        arg != "kthvaluebfp16" && arg != "glu" && arg != "glufp16" && arg != "glubfp16" &&
        arg != "softmarginloss" && arg != "softmarginlossfp16" && arg != "softmarginlossbfp16" &&
        arg != "multimarginloss" && arg != "multimarginlossfp16" && arg != "multimarginlossbfp16" &&
-       arg != "typecast" && arg != "typecastfp16" && arg != "typecastbfp16" && arg != "--version")
+       arg != "typecast_float32half" && arg != "typecast_float32bfloat16" &&
+       arg != "typecast_float32int8" && arg != "typecast_float32int" &&
+       arg != "typecast_float32double" && arg != "typecast_float32int64" &&
+       arg != "typecast_bfloat16" && arg != "typecast_int8" && arg != "typecast_int" &&
+       arg != "typecast_double" && arg != "typecast_int64" && arg != "typecast_bfloat16int8" &&
+       arg != "typecast_bfloat16int" && arg != "typecast_bfloat16double" &&
+       arg != "typecast_bfloat16int64" && arg != "typecast_int8int" &&
+       arg != "typecast_int8double" && arg != "typecast_int8int64" && arg != "typecast_intdouble" &&
+       arg != "typecast_intint64" && arg != "typecast_doubleint64" &&
+       arg != "typecast_halffloat32" && arg != "typecast_bfloat16float32" &&
+       arg != "typecast_int8float32" && arg != "typecast_intfloat32" &&
+       arg != "typecast_doublefloat32" && arg != "typecast_int64float32" &&
+       arg != "typecast_bfloat16half" && arg != "typecast_int8half" && arg != "typecast_inthalf" &&
+       arg != "typecast_doublehalf" && arg != "typecast_int64half" &&
+       arg != "typecast_int8bfloat16" && arg != "typecast_intbfloat16" &&
+       arg != "typecast_doublebfloat16" && arg != "typecast_int64bfloat16" &&
+       arg != "typecast_intint8" && arg != "typecast_doubleint8" && arg != "typecast_int64int8" &&
+       arg != "typecast_doubleint" && arg != "typecast_int64int" && arg != "typecast_int64double" &&
+       arg != "--version")
     {
         printf("FAILED: Invalid Base Input Argument\n");
         Usage();

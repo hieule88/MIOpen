@@ -25,23 +25,59 @@
  *******************************************************************************/
 #pragma once
 
-#include <cmath>
 #include <miopen/tensor.hpp>
 #include <miopen/tensor_view_utils.hpp>
 #include <../test/ford.hpp>
 
-template <typename Tgpu, typename Tcheck, typename Ti>
+template <typename DTYPE>
+inline DTYPE truncate_func(DTYPE val, uint64_t nbits)
+{
+    if constexpr(std::is_same_v<DTYPE, float>)
+    {
+        uint32_t intVal;
+        memcpy(&intVal, &val, sizeof(float));
+        intVal &= (0xFFFFFFFFu << nbits);
+        memcpy(&val, &intVal, sizeof(float));
+        return val;
+    }
+    else if constexpr(std::is_same_v<DTYPE, double>)
+    {
+        uint64_t intVal;
+        memcpy(&intVal, &val, sizeof(double));
+        intVal &= (0xFFFFFFFFFFFFFFFFull << nbits);
+        memcpy(&val, &intVal, sizeof(double));
+        return val;
+    }
+    else
+    {
+        return val;
+    }
+}
+
+template <class TI, class TO>
+inline TO cast_func(TI val)
+{
+    return static_cast<TO>(val);
+}
+
+template <typename TI, typename TO>
 int32_t mloTypeCastRunHost(const miopenTensorDescriptor_t inputDesc,
-                           const Tgpu* input,
+                           const TI* input,
                            const miopenTensorDescriptor_t outputDesc,
-                           Tcheck* output,
+                           TO* output,
                            const uint64_t bits_to_truncate)
 {
     auto input_tv  = miopen::get_inner_expanded_tv<5>(miopen::deref(inputDesc));
     auto output_tv = miopen::get_inner_expanded_tv<5>(miopen::deref(outputDesc));
 
     par_ford(miopen::deref(outputDesc).GetElementSize())([&](auto gid) {
-
+        tensor_layout_t<5> layout(input_tv, gid);
+        TI val = input[input_tv.get_tensor_view_idx(layout)];
+        if(bits_to_truncate)
+        {
+            val = truncate_func<TI>(val, bits_to_truncate);
+        }
+        output[output_tv.get_tensor_view_idx(layout)] = cast_func<TI, TO>(val);
     });
 
     return miopenStatusSuccess;

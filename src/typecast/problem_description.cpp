@@ -24,8 +24,8 @@
  *
  *******************************************************************************/
 
-#include <miopen/typecast/problem_description.hpp>
 #include <miopen/names.hpp>
+#include <miopen/typecast/problem_description.hpp>
 
 #include <sstream>
 
@@ -57,6 +57,7 @@ NetworkConfig ProblemDescription::MakeNetworkConfig() const
     ss << "-output_dtype" << output_dtype;
     ss << "-Is" << inputDesc.GetLengths();
     ss << "-IsAllContiguous" << IsAllContiguous();
+    ss << "-bits_to_truncate" << bits_to_truncate;
 
     return NetworkConfig{ss.str()};
 }

@@ -28,13 +28,50 @@
 #include "tensor_holder.hpp"
 #include <miopen/tensor_view_utils.hpp>
 
-template <class T, class Ti>
-void cpu_typecast(const tensor<T> input, tensor<T>& output, const uint64_t bits_to_truncate)
+template <typename DTYPE>
+inline DTYPE truncate_func(DTYPE val, uint64_t nbits)
+{
+    if constexpr(std::is_same_v<DTYPE, float>)
+    {
+        uint32_t intVal;
+        std::memcpy(&intVal, &val, sizeof(float));
+        intVal &= (0xFFFFFFFFu << nbits);
+        std::memcpy(&val, &intVal, sizeof(float));
+        return val;
+    }
+    else if constexpr(std::is_same_v<DTYPE, double>)
+    {
+        uint64_t intVal;
+        std::memcpy(&intVal, &val, sizeof(double));
+        intVal &= (0xFFFFFFFFFFFFFFFFull << nbits);
+        std::memcpy(&val, &intVal, sizeof(double));
+        return val;
+    }
+    else
+    {
+        return val;
+    }
+}
+
+template <class TI, class TO>
+inline TO cast_func(TI val)
+{
+    return static_cast<TO>(val);
+}
+
+template <class TI, class TO>
+void cpu_typecast(const tensor<TI> input, tensor<TO>& output, const uint64_t bits_to_truncate)
 {
     auto input_tv  = miopen::get_inner_expanded_tv<5>(input.desc);
     auto output_tv = miopen::get_inner_expanded_tv<5>(output.desc);
 
     par_ford(output.desc.GetElementSize())([&](auto gid) {
-
+        tensor_layout_t<5> layout(input_tv, gid);
+        TI val = input[input_tv.get_tensor_view_idx(layout)];
+        if(bits_to_truncate)
+        {
+            val = truncate_func<TI>(val, bits_to_truncate);
+        }
+        output[output_tv.get_tensor_view_idx(layout)] = cast_func<TI, TO>(val);
     });
 }

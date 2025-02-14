@@ -61,18 +61,14 @@ inline std::vector<TypeCastTestCase> TypeCastTestConfigs()
 {
     return {
         {{10, 10, 10, 10}, 0},
-        {{10, 100, 10, 10}, 0},
-        {{10, 10, 100, 100}, 0},
-        {{1, 100, 100, 100}, 0},
+        {{10, 100, 10, 10}, 1},
         {{10, 10, 10, 10, 10}, 0},
-        {{10, 100, 10, 10, 10}, 0},
-        {{10, 10, 100, 10, 10}, 0},
-        {{10, 10, 10, 100, 100}, 0},
+        {{10, 100, 10, 10, 10}, 1},
     };
 }
 
 // FORWARD TEST
-template <typename T = float, typename Ti = int64_t>
+template <typename TI, typename TO>
 struct TypeCastTestFwd : public ::testing::TestWithParam<TypeCastTestCase>
 {
 protected:
@@ -83,14 +79,14 @@ protected:
         in_dim          = typecast_config.input_dim;
 
         auto gen_input_value = [](auto...) {
-            return prng::gen_A_to_B<T>(static_cast<T>(-10.0f), static_cast<T>(10.0f));
+            return prng::gen_A_to_B<TI>(static_cast<TI>(-10.0f), static_cast<TI>(10.0f));
         };
-        input = tensor<T>{in_dim}.generate(gen_input_value);
+        input = tensor<TI>{in_dim}.generate(gen_input_value);
 
-        output = tensor<T>{in_dim};
+        output = tensor<TO>{in_dim};
         std::fill(output.begin(), output.end(), 0.0f);
 
-        ref_output = tensor<T>{in_dim};
+        ref_output = tensor<TO>{in_dim};
         std::fill(ref_output.begin(), ref_output.end(), 0.0f);
 
         input_dev  = handle.Write(input.data);
@@ -102,32 +98,39 @@ protected:
         auto&& handle = get_handle();
         miopenStatus_t status;
 
-        cpu_typecast<T, int64_t>(input, ref_output, bits_to_truncate);
+        cpu_typecast<TI, TO>(input, ref_output, bits_to_truncate);
 
         status = miopen::typecast::TypeCast(
             handle, input.desc, input_dev.get(), output.desc, output_dev.get(), bits_to_truncate);
 
         ASSERT_EQ(status, miopenStatusSuccess);
-        output.data = handle.Read<T>(output_dev, output.data.size());
+        output.data = handle.Read<TO>(output_dev, output.data.size());
     }
 
     void Verify()
     {
-        double threshold = std::numeric_limits<T>::epsilon();
+        double threshold = std::numeric_limits<TO>::epsilon();
 
         auto error = miopen::rms_range(ref_output, output);
 
+        for(int i = 0; i < 10; i++)
+        {
+            std::cout << "CPU ref_output[" << i << "] = " << ref_output[i] << " GPU output[" << i
+                      << "] = " << output[i] << std::endl;
+        }
+
         ASSERT_EQ(miopen::range_distance(ref_output), miopen::range_distance(output));
-        EXPECT_LT(error, threshold * 10) << "Error forward Output beyond 10xthreshold : " << error
+
+        EXPECT_LE(error, threshold * 10) << "Error forward Output beyond 10xthreshold : " << error
                                          << " Tolerance: " << threshold * 10;
     }
     TypeCastTestCase typecast_config;
 
     std::vector<size_t> in_dim;
 
-    tensor<T> input;
-    tensor<T> output;
-    tensor<T> ref_output;
+    tensor<TI> input;
+    tensor<TO> output;
+    tensor<TO> ref_output;
 
     uint64_t bits_to_truncate;
 

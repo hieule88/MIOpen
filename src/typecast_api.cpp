@@ -24,11 +24,11 @@
  *
  *******************************************************************************/
 
-#include <miopen/typecast.hpp>
 #include <miopen/errors.hpp>
 #include <miopen/handle.hpp>
 #include <miopen/logger.hpp>
 #include <miopen/tensor_ops.hpp>
+#include <miopen/typecast.hpp>
 
 inline std::ostream& operator<<(std::ostream& os, const std::vector<uint64_t>& v)
 {

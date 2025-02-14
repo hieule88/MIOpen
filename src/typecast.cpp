@@ -23,13 +23,13 @@
  * SOFTWARE.
  *
  *******************************************************************************/
-#include <miopen/typecast.hpp>
 #include <miopen/kernel_cache.hpp>
 #include <miopen/float_equal.hpp>
+#include <miopen/find_solution.hpp>
 #include <miopen/tensor.hpp>
+#include <miopen/typecast.hpp>
 #include <miopen/typecast/invoke_params.hpp>
 #include <miopen/typecast/solvers.hpp>
-#include <miopen/find_solution.hpp>
 
 namespace miopen {
 

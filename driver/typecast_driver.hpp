@@ -41,7 +41,7 @@
 #include <miopen/tensor.hpp>
 #include <vector>
 
-template <typename Tgpu, typename Tref, typename Tindices>
+template <typename Tin, typename Tout>
 class TypeCastDriver : public Driver
 {
 public:
@@ -50,7 +50,7 @@ public:
         miopenCreateTensorDescriptor(&inputDesc);
         miopenCreateTensorDescriptor(&outputDesc);
 
-        data_type = miopen_type<Tgpu>{};
+        data_type = miopen_type<Tin>{};
     }
 
     std::vector<int> ComputeStrides(std::vector<int> input);
@@ -68,7 +68,7 @@ public:
     int RunBackwardGPU() override;
     int RunBackwardCPU();
 
-    Tref GetTolerance();
+    Tout GetTolerance();
     int VerifyBackward() override;
     int VerifyForward() override;
     ~TypeCastDriver() override
@@ -87,17 +87,17 @@ private:
     std::unique_ptr<GPUMem> input_dev;
     std::unique_ptr<GPUMem> output_dev;
 
-    std::vector<Tgpu> input;
-    std::vector<Tgpu> output;
-    std::vector<Tref> output_host;
+    std::vector<Tin> input;
+    std::vector<Tout> output;
+    std::vector<Tout> output_host;
 
     uint64_t bits_to_truncate;
     std::vector<int> in_len;
     bool isContiguous;
 };
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::ParseCmdLineArgs(int argc, char* argv[])
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::ParseCmdLineArgs(int argc, char* argv[])
 {
     inflags.Parse(argc, argv);
     forw         = inflags.GetValueInt("forw");
@@ -111,8 +111,8 @@ int TypeCastDriver<Tgpu, Tref, Tindices>::ParseCmdLineArgs(int argc, char* argv[
     return miopenStatusSuccess;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::GetandSetData()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::GetandSetData()
 {
     in_len           = inflags.GetValueTensor("input_dim").lengths;
     bits_to_truncate = inflags.GetValueUint64("bits_to_truncate");
@@ -121,15 +121,15 @@ int TypeCastDriver<Tgpu, Tref, Tindices>::GetandSetData()
 
     if(SetTensorNd(inputDesc, in_len, in_stride, data_type) != miopenStatusSuccess)
         MIOPEN_THROW("Error parsing input tensor: " + inflags.GetValueStr("input_dim") + ".");
-    if(SetTensorNd(outputDesc, in_len, data_type) != miopenStatusSuccess)
+    if(SetTensorNd(outputDesc, in_len, miopen_type<Tout>{}) != miopenStatusSuccess)
         MIOPEN_THROW("Error parsing output tensor.");
 
     return miopenStatusSuccess;
 }
 
 // Equivalent to: tensor.tranpose(0, -1).contiguous().tranpose(0, -1) incase contiguous = False
-template <typename Tgpu, typename Tref, typename Tindices>
-std::vector<int> TypeCastDriver<Tgpu, Tref, Tindices>::ComputeStrides(std::vector<int> inputDim)
+template <typename Tin, typename Tout>
+std::vector<int> TypeCastDriver<Tin, Tout>::ComputeStrides(std::vector<int> inputDim)
 {
     if(!isContiguous)
         std::swap(inputDim.front(), inputDim.back());
@@ -142,8 +142,8 @@ std::vector<int> TypeCastDriver<Tgpu, Tref, Tindices>::ComputeStrides(std::vecto
     return strides;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::AddCmdLineArgs()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::AddCmdLineArgs()
 {
     inflags.AddInputFlag("forw", 'F', "1", "Run only Forward TypeCast (Default=1)", "int");
     inflags.AddTensorFlag("input_dim",
@@ -164,23 +164,23 @@ int TypeCastDriver<Tgpu, Tref, Tindices>::AddCmdLineArgs()
     return miopenStatusSuccess;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::AllocateBuffersAndCopy()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::AllocateBuffersAndCopy()
 {
     size_t input_sz = GetTensorSize(inputDesc);
 
     uint32_t ctx = 0;
 
-    input_dev  = std::unique_ptr<GPUMem>(new GPUMem(ctx, input_sz, sizeof(Tgpu)));
-    output_dev = std::unique_ptr<GPUMem>(new GPUMem(ctx, input_sz, sizeof(Tgpu)));
+    input_dev  = std::unique_ptr<GPUMem>(new GPUMem(ctx, input_sz, sizeof(Tin)));
+    output_dev = std::unique_ptr<GPUMem>(new GPUMem(ctx, input_sz, sizeof(Tout)));
 
-    input       = std::vector<Tgpu>(input_sz, static_cast<Tgpu>(0));
-    output      = std::vector<Tgpu>(input_sz, static_cast<Tgpu>(0));
-    output_host = std::vector<Tref>(input_sz, static_cast<Tref>(0));
+    input       = std::vector<Tin>(input_sz, static_cast<Tin>(0));
+    output      = std::vector<Tout>(input_sz, static_cast<Tout>(0));
+    output_host = std::vector<Tout>(input_sz, static_cast<Tout>(0));
 
     for(size_t i = 0; i < input_sz; i++)
     {
-        input[i] = prng::gen_A_to_B<Tgpu>(static_cast<Tgpu>(0.0), static_cast<Tgpu>(1.0));
+        input[i] = prng::gen_A_to_B<Tin>(static_cast<Tin>(-10.0), static_cast<Tin>(10.0));
     }
 
     if(input_dev->ToGPU(GetStream(), input.data()) != 0)
@@ -198,8 +198,8 @@ int TypeCastDriver<Tgpu, Tref, Tindices>::AllocateBuffersAndCopy()
     return miopenStatusSuccess;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::RunForwardGPU()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::RunForwardGPU()
 {
     float kernel_total_time = 0.0;
     float kernel_first_time = 0.0;
@@ -209,8 +209,8 @@ int TypeCastDriver<Tgpu, Tref, Tindices>::RunForwardGPU()
 
     for(int i = 0; i < inflags.GetValueInt("iter"); i++)
     {
-        miopenStatus_t status;
-        status = miopenTypeCast(GetHandle(),
+        miopenStatus_t status = miopenStatusSuccess;
+        status                = miopenTypeCast(GetHandle(),
                                 inputDesc,
                                 input_dev->GetMem(),
                                 outputDesc,
@@ -250,42 +250,48 @@ int TypeCastDriver<Tgpu, Tref, Tindices>::RunForwardGPU()
     return miopenStatusSuccess;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::RunForwardCPU()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::RunForwardCPU()
 {
     int status = miopenStatusSuccess;
 
-    status = mloTypeCastRunHost<Tgpu, Tref, Tindices>(
+    status = mloTypeCastRunHost<Tin, Tout>(
         inputDesc, input.data(), outputDesc, output_host.data(), bits_to_truncate);
     MIOPEN_THROW_IF(status != miopenStatusSuccess, "Error in mloTypeCastRunHost");
 
     return status;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::RunBackwardGPU()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::RunBackwardGPU()
 {
     return miopenStatusNotImplemented;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::RunBackwardCPU()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::RunBackwardCPU()
 {
     return miopenStatusNotImplemented;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-Tref TypeCastDriver<Tgpu, Tref, Tindices>::GetTolerance()
+template <typename Tin, typename Tout>
+Tout TypeCastDriver<Tin, Tout>::GetTolerance()
 {
-    Tref tolerance = std::numeric_limits<Tgpu>::epsilon() * 10;
+    Tout tolerance = static_cast<Tout>(std::numeric_limits<Tout>::epsilon() * 10);
     return tolerance;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::VerifyForward()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::VerifyForward()
 {
     RunForwardCPU();
-    const Tref tolerance = GetTolerance();
+    const Tout tolerance = GetTolerance();
+
+    for(int i = 0; i < 10; ++i)
+    {
+        std::cout << "Input: " << input[i] << " GPU: " << output[i] << " CPU: " << output_host[i]
+                  << std::endl;
+    }
 
     auto error = miopen::rms_range(output_host, output);
     if(!std::isfinite(error) || error > tolerance)
@@ -302,8 +308,8 @@ int TypeCastDriver<Tgpu, Tref, Tindices>::VerifyForward()
     return miopenStatusSuccess;
 }
 
-template <typename Tgpu, typename Tref, typename Tindices>
-int TypeCastDriver<Tgpu, Tref, Tindices>::VerifyBackward()
+template <typename Tin, typename Tout>
+int TypeCastDriver<Tin, Tout>::VerifyBackward()
 {
     return miopenStatusNotImplemented;
 }

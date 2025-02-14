@@ -24,30 +24,160 @@
  *
  *******************************************************************************/
 #include "typecast.hpp"
+#include "miopen/bfloat16.hpp"
 using float16 = half_float::half;
 
-using GPU_TypeCast_fwd_FP32  = TypeCastTestFwd<float, int64_t>;
-using GPU_TypeCast_fwd_FP16  = TypeCastTestFwd<float16, int64_t>;
-using GPU_TypeCast_fwd_BFP16 = TypeCastTestFwd<bfloat16, int64_t>;
+using GPU_TypeCast_fwd_int64bfloat16 = TypeCastTestFwd<int64_t, bfloat16>;
+using GPU_TypeCast_fwd_floatbfloat16 = TypeCastTestFwd<float, bfloat16>;
+using GPU_TypeCast_fwd_int64float    = TypeCastTestFwd<int64_t, float>;
+using GPU_TypeCast_fwd_bfloat16float = TypeCastTestFwd<bfloat16, float>;
+using GPU_TypeCast_fwd_uint8float    = TypeCastTestFwd<uint8_t, float>;
+using GPU_TypeCast_fwd_int8float     = TypeCastTestFwd<int8_t, float>;
+using GPU_TypeCast_fwd_boolfloat     = TypeCastTestFwd<int8_t, float>;
+using GPU_TypeCast_fwd_uint8int64    = TypeCastTestFwd<uint8_t, int64_t>;
+using GPU_TypeCast_fwd_float32int64  = TypeCastTestFwd<float, int64_t>;
+using GPU_TypeCast_fwd_boolint64     = TypeCastTestFwd<int8_t, int64_t>;
+using GPU_TypeCast_fwd_float32uint8  = TypeCastTestFwd<float, uint8_t>;
+using GPU_TypeCast_fwd_uint8bool     = TypeCastTestFwd<uint8_t, int8_t>;
+using GPU_TypeCast_fwd_bfloat16bool  = TypeCastTestFwd<bfloat16, int8_t>;
+using GPU_TypeCast_fwd_float32bool   = TypeCastTestFwd<float, int8_t>;
 
-TEST_P(GPU_TypeCast_fwd_FP32, Test)
+TEST_P(GPU_TypeCast_fwd_int64bfloat16, Test)
 {
     RunTest();
     Verify();
 };
 
-TEST_P(GPU_TypeCast_fwd_FP16, Test)
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_int64bfloat16,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_floatbfloat16, Test)
 {
     RunTest();
     Verify();
 };
 
-TEST_P(GPU_TypeCast_fwd_BFP16, Test)
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_floatbfloat16,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_int64float, Test)
 {
     RunTest();
     Verify();
 };
 
-INSTANTIATE_TEST_SUITE_P(Smoke, GPU_TypeCast_fwd_FP32, testing::ValuesIn(TypeCastTestConfigs()));
-INSTANTIATE_TEST_SUITE_P(Smoke, GPU_TypeCast_fwd_FP16, testing::ValuesIn(TypeCastTestConfigs()));
-INSTANTIATE_TEST_SUITE_P(Smoke, GPU_TypeCast_fwd_BFP16, testing::ValuesIn(TypeCastTestConfigs()));
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_int64float,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_bfloat16float, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_bfloat16float,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_uint8float, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_uint8float,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_int8float, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_int8float,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_boolfloat, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_boolfloat,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_uint8int64, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_uint8int64,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_float32int64, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_float32int64,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_boolint64, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_boolint64,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_float32uint8, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_float32uint8,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_uint8bool, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_uint8bool,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_bfloat16bool, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_bfloat16bool,
+                         testing::ValuesIn(TypeCastTestConfigs()));
+
+TEST_P(GPU_TypeCast_fwd_float32bool, Test)
+{
+    RunTest();
+    Verify();
+};
+
+INSTANTIATE_TEST_SUITE_P(Smoke,
+                         GPU_TypeCast_fwd_float32bool,
+                         testing::ValuesIn(TypeCastTestConfigs()));

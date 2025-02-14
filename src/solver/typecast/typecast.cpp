@@ -24,13 +24,13 @@
  *
  *******************************************************************************/
 
+#include <miopen/datatype.hpp>
+#include <miopen/mlo_internal.hpp>
+#include <miopen/target_properties.hpp>
+#include <miopen/tensor_view_utils.hpp>
 #include <miopen/typecast.hpp>
 #include <miopen/typecast/invoke_params.hpp>
 #include <miopen/typecast/solvers.hpp>
-#include <miopen/mlo_internal.hpp>
-#include <miopen/datatype.hpp>
-#include <miopen/target_properties.hpp>
-#include <miopen/tensor_view_utils.hpp>
 
 #define LOCAL_SIZE 256
 
@@ -39,6 +39,20 @@ namespace miopen {
 namespace solver {
 
 namespace typecast {
+
+namespace {
+inline std::string ConvertTypeName(std::string mi_type)
+{
+    if(mi_type == "bfloat16")
+        return "ushort";
+    else if(mi_type == "int64")
+        return "int64_t";
+    else if(mi_type == "int8_t")
+        return "__hip_internal::int8_t";
+    else
+        return mi_type;
+}
+} // unnamed namespace
 
 bool TypeCast::IsApplicable(const ExecutionContext&,
                             const miopen::typecast::ProblemDescription& problem) const
@@ -58,16 +72,12 @@ ConvSolution TypeCast::GetSolution(const ExecutionContext& context,
 
     auto result       = ConvSolution{miopenStatusSuccess};
     auto build_params = KernelBuildParameters{
-        {"MIOPEN_USE_FP16",
-         static_cast<int>(output_dtype == miopenHalf || input_dtype == miopenHalf)},
-        {"MIOPEN_USE_FP32",
-         static_cast<int>(output_dtype == miopenFloat || input_dtype == miopenFloat)},
-        {"MIOPEN_USE_FP64",
-         static_cast<int>(output_dtype == miopenDouble || input_dtype == miopenDouble)},
-        {"MIOPEN_USE_BFP16",
-         static_cast<int>(output_dtype == miopenBFloat16 || input_dtype == miopenBFloat16)},
-        {"I_TYPE", mi_input_dtype == "bfloat16" ? "ushort" : mi_input_dtype},
-        {"O_TYPE", mi_output_dtype == "int64" ? "size_t" : mi_output_dtype},
+        {"IS_I_TYPE_BFP16", static_cast<int>(input_dtype == miopenBFloat16)},
+        {"IS_I_TYPE_FP32", static_cast<int>(input_dtype == miopenFloat)},
+        {"IS_I_TYPE_FP64", static_cast<int>(input_dtype == miopenDouble)},
+        {"IS_O_TYPE_BFP16", static_cast<int>(output_dtype == miopenBFloat16)},
+        {"I_TYPE", ConvertTypeName(mi_input_dtype)},
+        {"O_TYPE", ConvertTypeName(mi_output_dtype)},
     };
 
     if(!problem.IsAllContiguous())

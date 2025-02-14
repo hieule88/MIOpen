@@ -31,6 +31,42 @@
 #include "float_types.h"
 #include "tensor_view.hpp"
 
+template <typename DTYPE>
+__device__ DTYPE truncate_func(DTYPE val, uint64_t nbits)
+{
+#if IS_I_TYPE_FP32 == 1
+    return __uint_as_float((__float_as_uint(val) & (static_cast<uint>(0xFFFFFFFF) << nbits)));
+#elif IS_I_TYPE_FP64 == 1
+    return __longlong_as_double(
+        (__double_as_longlong(val) & (static_cast<long long>(0xFFFFFFFFFFFFFFFF) << nbits)));
+#else
+    return val;
+#endif
+}
+
+template <typename TI, typename TO>
+__device__ TO cast_func(TI x)
+{
+#if IS_O_TYPE_BFP16 == 1
+#if IS_I_TYPE_FP32 == 1
+    return (__float_as_uint(x) + ((__float_as_uint(x) >> 16) & 1) + (static_cast<uint>(0x7FFF))) >>
+           16;
+
+#else
+    return (__float_as_uint(static_cast<float>(x)) +
+            ((__float_as_uint(static_cast<float>(x)) >> 16) & 1) + (static_cast<uint>(0x7FFF))) >>
+           16;
+
+#endif
+#else
+#if IS_I_TYPE_BFP16 == 1
+    return static_cast<TO>(bfloat16_to_float(x));
+#else
+    return static_cast<TO>(x);
+#endif
+#endif
+}
+
 template <typename TI, typename TO>
 __device__ void typeCast(const TI* __restrict__ input,
                          TO* __restrict__ output,
@@ -90,34 +126,4 @@ extern "C" __global__ void TypeCastContiguous(const I_TYPE* __restrict__ input,
                                               uint64_t numel)
 {
     typeCastContiguous<I_TYPE, O_TYPE>(input, output, bits_to_truncate, numel);
-}
-
-template <typename DTYPE>
-inline DTYPE truncate_func(DTYPE val, uint64_t nbits)
-{
-#if IS_I_TYPE_FP32 == 1
-    return __uint_as_float((__float_as_uint(val) & (static_cast<uint>(0xFFFFFFFF) << nbits)));
-#elif IS_I_TYPE_FP64 == 1
-    return __longlong_as_double(
-        (__double_as_longlong(val) & (static_cast<long long>(0xFFFFFFFFFFFFFFFF) << nbits)));
-#else
-    return val;
-#endif
-}
-
-template <typename TI, typename TO>
-inline TO cast_func(TI val)
-{
-#if IS_O_TYPE_BFP16 == 1
-#if IS_I_TYPE_FP32
-    return (__float_as_uint(x) + ((__float_as_uint(x) >> 16) & 1) + (static_cast<uint>(0x7FFF))) >>
-           16;
-#else
-    return (__float_as_uint(static_cast<float>(x)) +
-            ((__float_as_uint(static_cast<float>(x)) >> 16) & 1) + (static_cast<uint>(0x7FFF))) >>
-           16;
-#endif
-#else
-    return static_cast<TO>(val);
-#endif
 }

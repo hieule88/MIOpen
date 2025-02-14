@@ -51,8 +51,8 @@ struct ProblemDescription : ProblemDescriptionBase
 
     bool IsSameLength() const
     {
-        if(inputDesc.GetType() != outputDesc.GetType())
-            MIOPEN_THROW(miopenStatusBadParm, "TypeCast: Data types do not match.");
+        if(inputDesc.GetLengths() != outputDesc.GetLengths())
+            MIOPEN_THROW(miopenStatusBadParm, "TypeCast: Data lengths do not match.");
         return true;
     }
 

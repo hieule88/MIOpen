@@ -41,7 +41,6 @@ add_executable(MIOpenDriver
     dm_convfp8.cpp
     dm_convint8.cpp
     dm_dropout.cpp
-    dm_typecast.cpp
     dm_fusion.cpp
     dm_gemm.cpp
     dm_getitem.cpp
@@ -63,6 +62,7 @@ add_executable(MIOpenDriver
     dm_t5layernorm.cpp
     dm_tensorop.cpp
     dm_transformers_adam_w.cpp
+    dm_typecast.cpp
     main.cpp
     registry_driver_maker.cpp
     rocrand_wrapper.cpp)
